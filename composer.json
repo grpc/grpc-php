@@ -3,8 +3,8 @@
   "type": "library",
   "description": "gRPC library for PHP",
   "keywords": ["rpc"],
-  "homepage": "http://grpc.io",
-  "license": "BSD-3-Clause",
+  "homepage": "https://grpc.io",
+  "license": "Apache-2.0",
   "require": {
     "php": ">=5.5.0"
   },
