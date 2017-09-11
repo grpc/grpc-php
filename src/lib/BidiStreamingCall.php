@@ -35,8 +35,8 @@
 namespace Grpc;
 
 /**
- * Represents an active call that allows for sending and recieving messages in
- * streams in any order.
+ * Represents an active call that allows for sending and recieving messages
+ * in streams in any order.
  */
 class BidiStreamingCall extends AbstractCall
 {
@@ -44,8 +44,9 @@ class BidiStreamingCall extends AbstractCall
      * Start the call.
      *
      * @param array $metadata Metadata to send with the call, if applicable
+     *                        (optional)
      */
-    public function start($metadata = [])
+    public function start(array $metadata = [])
     {
         $this->call->startBatch([
             OP_SEND_INITIAL_METADATA => $metadata,
@@ -55,7 +56,7 @@ class BidiStreamingCall extends AbstractCall
     /**
      * Reads the next value from the server.
      *
-     * @return The next value from the server, or null if there is none
+     * @return mixed The next value from the server, or null if there is none
      */
     public function read()
     {
@@ -76,13 +77,13 @@ class BidiStreamingCall extends AbstractCall
      * writesDone is called.
      *
      * @param ByteBuffer $data    The data to write
-     * @param array      $options an array of options, possible keys:
-     *                            'flags' => a number
+     * @param array      $options An array of options, possible keys:
+     *                            'flags' => a number (optional)
      */
-    public function write($data, $options = [])
+    public function write($data, array $options = [])
     {
-        $message_array = ['message' => $data->serialize()];
-        if (isset($options['flags'])) {
+        $message_array = ['message' => $this->serializeMessage($data)];
+        if (array_key_exists('flags', $options)) {
             $message_array['flags'] = $options['flags'];
         }
         $this->call->startBatch([
@@ -103,8 +104,8 @@ class BidiStreamingCall extends AbstractCall
     /**
      * Wait for the server to send the status, and return it.
      *
-     * @return object The status object, with integer $code, string $details,
-     *                and array $metadata members
+     * @return \stdClass The status object, with integer $code, string
+     *                   $details, and array $metadata members
      */
     public function getStatus()
     {
