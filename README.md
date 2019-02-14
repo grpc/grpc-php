@@ -20,5 +20,3 @@ for plaintext request
     list($reply, $status) = $client->SayHello($request)->wait();
     $message = $reply->getMessage();
 ```
-
-
