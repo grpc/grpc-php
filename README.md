@@ -8,6 +8,17 @@ that project.
 
 To install gRPC for PHP, please see https://github.com/grpc/grpc/tree/master/src/php
 
+
+
 for plaintext request
 
-`php $channel = new \Grpc\Channel('0.0.0.0:50051',[]); $client = new Helloworld\GreeterClient(null, null, $channel); $request = new Helloworld\HelloRequest(); $request->setName($name); list($reply, $status) = $client->SayHello($request)->wait(); $message = $reply->getMessage();`
+```php 
+    $channel = new \Grpc\Channel('0.0.0.0:50051',[]);
+    $client = new Helloworld\GreeterClient(null, null, $channel);
+    $request = new Helloworld\HelloRequest();
+    $request->setName($name);
+    list($reply, $status) = $client->SayHello($request)->wait();
+    $message = $reply->getMessage();
+```
+
+
