@@ -79,8 +79,8 @@ class Interceptor
      */
     public static function intercept($channel, $interceptors)
     {
-        if (is_array($interceptors)) {
-            for ($i = count($interceptors) - 1; $i >= 0; $i--) {
+        if (\is_array($interceptors)) {
+            for ($i = \count($interceptors) - 1; $i >= 0; $i--) {
                 $channel = new Internal\InterceptorChannel($channel, $interceptors[$i]);
             }
         } else {

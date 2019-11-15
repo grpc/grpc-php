@@ -48,8 +48,8 @@ abstract class AbstractCall
                                 $deserialize,
                                 array $options = [])
     {
-        if (array_key_exists('timeout', $options) &&
-            is_numeric($timeout = $options['timeout'])
+        if (\array_key_exists('timeout', $options) &&
+            \is_numeric($timeout = $options['timeout'])
         ) {
             $now = Timeval::now();
             $delta = new Timeval($timeout);
@@ -61,8 +61,8 @@ abstract class AbstractCall
         $this->deserialize = $deserialize;
         $this->metadata = null;
         $this->trailing_metadata = null;
-        if (array_key_exists('call_credentials_callback', $options) &&
-            is_callable($call_credentials_callback =
+        if (\array_key_exists('call_credentials_callback', $options) &&
+            \is_callable($call_credentials_callback =
                 $options['call_credentials_callback'])
         ) {
             $call_credentials = CallCredentials::createFromPlugin(
@@ -114,9 +114,9 @@ abstract class AbstractCall
     protected function _serializeMessage($data)
     {
         // Proto3 implementation
-        if (method_exists($data, 'encode')) {
+        if (\method_exists($data, 'encode')) {
             return $data->encode();
-        } elseif (method_exists($data, 'serializeToString')) {
+        } elseif (\method_exists($data, 'serializeToString')) {
             return $data->serializeToString();
         }
 
@@ -138,10 +138,10 @@ abstract class AbstractCall
         }
 
         // Proto3 implementation
-        if (is_array($this->deserialize)) {
+        if (\is_array($this->deserialize)) {
             list($className, $deserializeFunc) = $this->deserialize;
             $obj = new $className();
-            if (method_exists($obj, $deserializeFunc)) {
+            if (\method_exists($obj, $deserializeFunc)) {
                 $obj->$deserializeFunc($value);
             } else {
                 $obj->mergeFromString($value);
@@ -151,7 +151,7 @@ abstract class AbstractCall
         }
 
         // Protobuf-PHP implementation
-        return call_user_func($this->deserialize, $value);
+        return \call_user_func($this->deserialize, $value);
     }
 
     /**

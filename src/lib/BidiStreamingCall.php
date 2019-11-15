@@ -68,7 +68,7 @@ class BidiStreamingCall extends AbstractCall
     public function write($data, array $options = [])
     {
         $message_array = ['message' => $this->_serializeMessage($data)];
-        if (array_key_exists('flags', $options)) {
+        if (\array_key_exists('flags', $options)) {
             $message_array['flags'] = $options['flags'];
         }
         $this->call->startBatch([

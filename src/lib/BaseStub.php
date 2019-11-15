@@ -43,15 +43,15 @@ class BaseStub
      */
     public function __construct($hostname, $opts, $channel = null)
     {
-        $ssl_roots = file_get_contents(
-            dirname(__FILE__).'/../../etc/roots.pem'
+        $ssl_roots = \file_get_contents(
+            \dirname(__FILE__).'/../../etc/roots.pem'
         );
         ChannelCredentials::setDefaultRootsPem($ssl_roots);
 
         $this->hostname = $hostname;
         $this->update_metadata = null;
         if (isset($opts['update_metadata'])) {
-            if (is_callable($opts['update_metadata'])) {
+            if (\is_callable($opts['update_metadata'])) {
                 $this->update_metadata = $opts['update_metadata'];
             }
             unset($opts['update_metadata']);
@@ -69,8 +69,8 @@ class BaseStub
         }
         $this->call_invoker = new DefaultCallInvoker();
         if ($channel) {
-            if (!is_a($channel, 'Grpc\Channel') &&
-                !is_a($channel, 'Grpc\Internal\InterceptorChannel')) {
+            if (!\is_a($channel, 'Grpc\Channel') &&
+                !\is_a($channel, 'Grpc\Internal\InterceptorChannel')) {
                 throw new \Exception('The channel argument is not a Channel object '.
                     'or an InterceptorChannel object created by '.
                     'Interceptor::intercept($channel, Interceptor|Interceptor[] $interceptors)');
@@ -83,11 +83,11 @@ class BaseStub
     }
 
     private static function updateOpts($opts) {
-        if (!file_exists($composerFile = __DIR__.'/../../composer.json')) {
+        if (!\file_exists($composerFile = __DIR__.'/../../composer.json')) {
             // for grpc/grpc-php subpackage
             $composerFile = __DIR__.'/../composer.json';
         }
-        $package_config = json_decode(file_get_contents($composerFile), true);
+        $package_config = \json_decode(\file_get_contents($composerFile), true);
         if (!empty($opts['grpc.primary_user_agent'])) {
             $opts['grpc.primary_user_agent'] .= ' ';
         } else {
@@ -95,7 +95,7 @@ class BaseStub
         }
         $opts['grpc.primary_user_agent'] .=
             'grpc-php/'.$package_config['version'];
-        if (!array_key_exists('credentials', $opts)) {
+        if (!\array_key_exists('credentials', $opts)) {
             throw new \Exception("The opts['credentials'] key is now ".
                 'required. Please see one of the '.
                 'ChannelCredentials::create methods');
@@ -206,13 +206,13 @@ class BaseStub
         // in the grpc_auth_metadata_context.service_url field.
         // Trying to do the construction of "aud" field ourselves
         // is bad.
-        $last_slash_idx = strrpos($method, '/');
+        $last_slash_idx = \strrpos($method, '/');
         if ($last_slash_idx === false) {
             throw new \InvalidArgumentException(
                 'service name must have a slash'
             );
         }
-        $service_name = substr($method, 0, $last_slash_idx);
+        $service_name = \substr($method, 0, $last_slash_idx);
 
         if ($this->hostname_override) {
             $hostname = $this->hostname_override;
@@ -222,8 +222,8 @@ class BaseStub
 
         // Remove the port if it is 443
         // See https://github.com/grpc/grpc/blob/07c9f7a36b2a0d34fcffebc85649cf3b8c339b5d/src/core/lib/security/transport/client_auth_filter.cc#L205
-        if ((strlen($hostname) > 4) && (substr($hostname, -4) === ":443")) {
-            $hostname = substr($hostname, 0, -4);
+        if ((\strlen($hostname) > 4) && (\substr($hostname, -4) === ":443")) {
+            $hostname = \substr($hostname, 0, -4);
         }
 
         return 'https://'.$hostname.$service_name;
@@ -241,13 +241,13 @@ class BaseStub
     {
         $metadata_copy = [];
         foreach ($metadata as $key => $value) {
-            if (!preg_match('/^[.A-Za-z\d_-]+$/', $key)) {
+            if (!\preg_match('/^[.A-Za-z\d_-]+$/', $key)) {
                 throw new \InvalidArgumentException(
                     'Metadata keys must be nonempty strings containing only '.
                     'alphanumeric characters, hyphens, underscores and dots'
                 );
             }
-            $metadata_copy[strtolower($key)] = $value;
+            $metadata_copy[\strtolower($key)] = $value;
         }
 
         return $metadata_copy;
@@ -275,8 +275,8 @@ class BaseStub
                 $options
             );
             $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
-            if (is_callable($this->update_metadata)) {
-                $metadata = call_user_func(
+            if (\is_callable($this->update_metadata)) {
+                $metadata = \call_user_func(
                     $this->update_metadata,
                     $metadata,
                     $jwt_aud_uri
@@ -311,8 +311,8 @@ class BaseStub
                 $options
             );
             $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
-            if (is_callable($this->update_metadata)) {
-                $metadata = call_user_func(
+            if (\is_callable($this->update_metadata)) {
+                $metadata = \call_user_func(
                     $this->update_metadata,
                     $metadata,
                     $jwt_aud_uri
@@ -348,8 +348,8 @@ class BaseStub
                 $options
             );
             $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
-            if (is_callable($this->update_metadata)) {
-                $metadata = call_user_func(
+            if (\is_callable($this->update_metadata)) {
+                $metadata = \call_user_func(
                     $this->update_metadata,
                     $metadata,
                     $jwt_aud_uri
@@ -384,8 +384,8 @@ class BaseStub
                 $options
             );
             $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
-            if (is_callable($this->update_metadata)) {
-                $metadata = call_user_func(
+            if (\is_callable($this->update_metadata)) {
+                $metadata = \call_user_func(
                     $this->update_metadata,
                     $metadata,
                     $jwt_aud_uri
@@ -410,7 +410,7 @@ class BaseStub
      */
     private function _UnaryUnaryCallFactory($channel)
     {
-        if (is_a($channel, 'Grpc\Internal\InterceptorChannel')) {
+        if (\is_a($channel, 'Grpc\Internal\InterceptorChannel')) {
             return function ($method,
                              $argument,
                              $deserialize,
@@ -439,7 +439,7 @@ class BaseStub
      */
     private function _UnaryStreamCallFactory($channel)
     {
-        if (is_a($channel, 'Grpc\Internal\InterceptorChannel')) {
+        if (\is_a($channel, 'Grpc\Internal\InterceptorChannel')) {
             return function ($method,
                              $argument,
                              $deserialize,
@@ -468,7 +468,7 @@ class BaseStub
      */
     private function _StreamUnaryCallFactory($channel)
     {
-        if (is_a($channel, 'Grpc\Internal\InterceptorChannel')) {
+        if (\is_a($channel, 'Grpc\Internal\InterceptorChannel')) {
             return function ($method,
                              $deserialize,
                              array $metadata = [],
@@ -495,7 +495,7 @@ class BaseStub
      */
     private function _StreamStreamCallFactory($channel)
     {
-        if (is_a($channel, 'Grpc\Internal\InterceptorChannel')) {
+        if (\is_a($channel, 'Grpc\Internal\InterceptorChannel')) {
             return function ($method,
                              $deserialize,
                              array $metadata = [],
