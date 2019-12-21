@@ -43,7 +43,14 @@ class BaseStub
      */
     public function __construct($hostname, $opts, $channel = null)
     {
-        if (!ChannelCredentials::isDefaultRootsPemSet()) {
+        if (!method_exists('ChannelCredentials', 'isDefaultRootsPemSet')) {
+            // for backwards compatibility
+            // isDefaultRootsPemSet() may not be defined if the pecl extension
+            // is not upgraded
+            $ssl_roots = file_get_contents(
+                dirname(__FILE__).'/../../etc/roots.pem'
+            );
+        } elseif (!ChannelCredentials::isDefaultRootsPemSet()) {
             $ssl_roots = file_get_contents(
                 dirname(__FILE__).'/../../etc/roots.pem'
             );
