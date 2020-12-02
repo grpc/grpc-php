@@ -5,9 +5,9 @@
   "keywords": ["rpc"],
   "homepage": "https://grpc.io",
   "license": "Apache-2.0",
-  "version": "1.30.0",
+  "version": "1.34.0",
   "require": {
-    "php": ">=5.5.0"
+    "php": ">=7.0.0"
   },
   "require-dev": {
     "google/auth": "^v1.3.0"
