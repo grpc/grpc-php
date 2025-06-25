@@ -8,7 +8,10 @@
   "version": "1.74.0",
   "require": {
     "php": ">=7.1.0",
-    "ext-grpc": "*"
+    "google/protobuf": "^v3.3.0"
+  },
+  "require-dev": {
+    "google/auth": "^v1.3.0"
   },
   "suggest": {
     "ext-protobuf": "For better performance, install the protobuf C extension.",
