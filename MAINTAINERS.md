@@ -8,9 +8,12 @@ See [CONTRIBUTING.md](https://github.com/grpc/grpc-community/blob/master/CONTRIB
 for general contribution guidelines.
 
 ## Maintainers (in alphabetical order)
+- [pawbhard](https://github.com/pawbhard), Google Inc.
+
+## Emeritus Maintainers (in alphabetical order)
+- [murgatroid99](https://github.com/murgatroid99), Google Inc.
 - [stanley-cheung](https://github.com/stanley-cheung), Google Inc.
 - [wenbozhu](https://github.com/wenbozhu), Google Inc.
 - [zhouyihaiding](https://github.com/zhouyihaiding), Google Inc.
 
-## Emeritus Maintainers (in alphabetical order)
-- [murgatroid99](https://github.com/murgatroid99), Google Inc.
+
