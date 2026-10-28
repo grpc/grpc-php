@@ -1,0 +1,122 @@
+# Syncs the PHP library sources from a grpc/grpc release tag into this repo,
+# commits the result, and creates the same tag in this repo.
+name: Sync from grpc/grpc tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "grpc/grpc tag to sync from (for example, v1.85.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-from-grpc
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: grpc/grpc
+  UPSTREAM_DIR: .upstream-grpc
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate tag input
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::Tag '$TAG' is not valid. Use the format vX.Y.Z or vX.Y.Z-suffix."
+            exit 1
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+
+      - name: Check out this repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail if tag already exists in this repository
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then
+            echo "::error::Tag '${TAG}' already exists in ${GITHUB_REPOSITORY}."
+            exit 1
+          fi
+
+      - name: Fail if tag does not exist in grpc/grpc
+        run: |
+          if ! git ls-remote --exit-code --tags "https://github.com/${UPSTREAM_REPO}.git" "refs/tags/${TAG}" >/dev/null; then
+            echo "::error::Tag '${TAG}' does not exist in ${UPSTREAM_REPO}."
+            exit 1
+          fi
+
+      - name: Check out grpc/grpc at the tag
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.UPSTREAM_REPO }}
+          ref: refs/tags/${{ inputs.tag }}
+          path: ${{ env.UPSTREAM_DIR }}
+          fetch-depth: 1
+          sparse-checkout: |
+            /etc/roots.pem
+            /src/php/lib/Grpc/
+          sparse-checkout-cone-mode: false
+
+      - name: Copy files from grpc/grpc
+        run: |
+          set -euo pipefail
+          test -f "${UPSTREAM_DIR}/etc/roots.pem"
+          test -d "${UPSTREAM_DIR}/src/php/lib/Grpc"
+
+          mkdir -p etc src/lib
+          cp "${UPSTREAM_DIR}/etc/roots.pem" etc/roots.pem
+          # --delete removes files from src/lib that no longer exist upstream.
+          rsync -a --delete "${UPSTREAM_DIR}/src/php/lib/Grpc/" src/lib/
+
+      - name: Fix roots.pem path in BaseStub.php
+        run: |
+          set -euo pipefail
+          # In grpc/grpc, BaseStub.php is at src/php/lib/Grpc/ (4 levels deep).
+          # In this repo, it is at src/lib/ (2 levels deep).
+          sed -i "s#dirname(__FILE__)\.'/\.\./\.\./\.\./\.\./etc/roots\.pem'#dirname(__FILE__).'/../../etc/roots.pem'#" \
+            src/lib/BaseStub.php
+          if ! grep -qF "dirname(__FILE__).'/../../etc/roots.pem'" src/lib/BaseStub.php; then
+            echo "::error::Could not set the roots.pem path in src/lib/BaseStub.php."
+            exit 1
+          fi
+
+      - name: Update version in composer.json
+        run: |
+          set -euo pipefail
+          # sed keeps the existing formatting of composer.json.
+          sed -i -E "s/(\"version\"[[:space:]]*:[[:space:]]*\")[^\"]*(\")/\1${VERSION}\2/" composer.json
+          actual="$(jq -r '.version' composer.json)"
+          if [[ "$actual" != "$VERSION" ]]; then
+            echo "::error::composer.json version is '$actual', expected '$VERSION'."
+            exit 1
+          fi
+
+      - name: Remove grpc/grpc checkout
+        run: rm -rf "${UPSTREAM_DIR}"
+
+      - name: Commit, tag, and push
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add composer.json etc/roots.pem src/lib
+          if git diff --cached --quiet; then
+            echo "::notice::No file changes. The tag will point to the current commit."
+          else
+            git commit -m "Sync with ${UPSTREAM_REPO} ${TAG}"
+          fi
+
+          git tag -a "${TAG}" -m "Sync with ${UPSTREAM_REPO} ${TAG}"
+          # --atomic pushes the branch and the tag together, or neither.
+          git push --atomic origin "HEAD:refs/heads/${GITHUB_REF_NAME}" "refs/tags/${TAG}"
